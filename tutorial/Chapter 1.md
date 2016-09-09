@@ -1,7 +1,9 @@
 # Wii U Programming
 A quick thrash for existing programmers
 
-###### todo: make a nice introduction
+**Chapter 1 - An Overview of the Wii U**
+
+Heya! (announcer voice)Welcome... to the world of Wii U programming. In all seriousness; hi! This is a quick guide for pre-existing programmers to get their head around the Wii U and what it has to offer. It's a great console that's been pretty much completely cracked open (despite what GBATemp will tell you, an IOSU exploit is *not* needed to make homebrew with all the power of a retail game). Programming is a challenge, but it's fun; and the end results are always satisfying. I hope to see your apps running on my console soon!
 
 ## Prerequisites
  - A Wii U and a computer
@@ -32,3 +34,7 @@ The PowerPC is where pretty much all the code is ran; games, homebrew, most of t
  
 The IOSU is a seperate ARM processor that acts as a gatekeeper between the PowerPC and the Wii U's hardware. It enforces a permissions system where it applies restrictions based on what program is running on the PowerPC. It's no powerhouse but it does a rather good job; stopping stuff like USB from being accessible. It also checks the signatures of programs running on the PowerPC, which is why we can't just install homebrew. It has a userspace and a kernel; just like the PowerPC.
 
+###### todo: compilers/languages + everything else
+
+***Chapter 1: That's all folks!***
+Head over to Chapter 2 [here](/tutorial/Chapter%202.md).
