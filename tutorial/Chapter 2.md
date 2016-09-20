@@ -30,4 +30,22 @@ OSDynLoad_FindExport(coreinit_handle, 0, "OSSleepTicks", &OSSleepTicks);
 //We can now call OSSleepTicks wherever the function pointer is accessible
 OSSleepTicks(5000);
 ```
-As you can see, all you need to get any of the Wii U's dynamic functions is one or two calls to OSDynLoad and the prototype for that function. While this is a pretty neat system, it does require you to know all the functions you'll ever want *and* which libary to find them in.
+As you can see, all you need to get any of the Wii U's dynamic functions is one or two calls to OSDynLoad and the prototype for that function. While this is a pretty neat system, it does require you to know all the functions you'll ever want *and* which library to find them in.
+
+So, let's go through the important libraries. You'll pick up functions as you go along, but it's essential to have an idea of where you might find them.
+
+### coreinit.rpl
+Coreinit is the mother of all the Wii U's dynamic libraries. It's basically a "misc" library that has everything from memory manipulation to SD card access to system information to obscure PowerPC instructions, and even a simple graphics system. Coreinit is often the first library accessed by any homebrew due to the sheer range of essential things that it can do.
+
+Here's a few examples of useful coreinit functions:
+ - The **OSScreen** group of functions, which provide a simple graphics system that just works. You get a framebuffer and a font renderer - we'll look at OSScreen in Chapter 3.
+ - The **MEM** group of functions provide an easy way to manage memory and use heaps (lower-level equivalents of `malloc()` etc.). You don't *have* to use these functions (DMA works just fine), but it's easier if you do.
+ - The **FS** and **FSA** set of functions talk to the SD card and other internal storage locations on the Wii U.
+ - The **DC** and **IC** functions, which deal with the PowerPC's caching system and help enforce your favorite cache coherency model (because everyone has one of those).
+ - All the other functions, such as the **IM** set which deal with power management, the **IOS** group which does exactly what you think they do, the **MCP** set which handle title installing and management, all the miscellaneous functions under **OS**... the list goes on.
+
+### gx2.rpl
+GX2 is the Wii U's fancy graphics API. I'm not particularly fluent in it at the time of writing but I hear it's similar to OpenGL. OSScreen will do for this tutorial, however, so we won't really be looking at it.
+
+### vpad.rpl
+The VPAD library has all the functions you need to communicate with the Gamepad (aka DRC) and other controllers connected to the Wii U.
