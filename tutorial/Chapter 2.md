@@ -53,7 +53,7 @@ The VPAD library has all the functions you need to communicate with the Gamepad 
 ### sndcore2.rpl / snd_core.rpl
 These two libraries are responsible for sound (along with their friend libraries, `snd_user.rpl` and `snduser2.rpl`) and provide the functions you'll need to make all the strangled noises you want!
 
-This is just a quick course on the most essential libraries, you can find a more complete list (along with specific function documentation) [here](#todo).
+This is just a quick course on the most essential libraries, you can find a more complete list (along with specific function documentation) [here](https://wiiubrew.org/wiki/Cafe_OS#Libraries).
 
 ***Chapter 2: Over and out!***
 In Chapter 3, we'll have a look at how this all comes together in a HBL-compatible Hello World! Take a look [here](/tutorial/Chapter%203.md).
