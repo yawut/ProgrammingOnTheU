@@ -8,7 +8,7 @@ Now we've looked at the Wii U from a distance, it's time to get a bit closer to 
 ## The Wii U's Programming Model
 (for browserhax/HBL)
 
-The Wii U is different to the Wii in that it almost completely revolves around dynamic libraries. The graphics API is a dynamic library, the controllers are accessed with a dynamic library, pretty much everything you can do must be done through a dynamic library. This is pretty clever on Nintendo's part since they can enforce their permissions system in these libraries (although that's not too much of an issue under HBL). Libraries are in ``.rpl`` format (Nintendo's fancy pretty-much-ELF files). There's a whole bunch of them just sitting around in memory ready for you to use.
+Te Wii U is different to the Wii in that it almost completely revolves around dynamic libraries. The graphics API is a dynamic library, the wcontrollers are accessed with a dynamic library, pretty much everything you can do must be done through a dynamic library. This is pretty clever on Nintendo's part since they can enforce their permissions system in these libraries (although that's not too much of an issue under HBL). Libraries are in ``.rpl`` format (Nintendo's fancy pretty-much-ELF files). There's a whole bunch of them just sitting around in memory ready for you to use.
 
 Since they're in dynamic libraries, function pointers are used to access most of the in-built functions on the Wii U. The function ``OSDynLoad_Acquire`` will give you a *handle* to a given library, while ``OSDynLoad_FindExport`` will export a function from a library into a function pointer. Here's an example of this in action:
 ```c
@@ -31,7 +31,7 @@ OSDynLoad_FindExport(coreinit_handle, 0, "OSSleepTicks", &OSSleepTicks);
 OSSleepTicks(5000);
 ```
 As you can see, all you need to get any of the Wii U's dynamic functions is one or two calls to OSDynLoad and the prototype for that function. While this is a pretty neat system, it does require you to know all the functions you'll ever want *and* which library to find them in.
-
+q
 So, let's go through the important libraries. You'll pick up functions as you go along, but it's essential to have an idea of where you might find them.
 
 ### coreinit.rpl
@@ -48,4 +48,12 @@ Here's a few examples of useful coreinit functions:
 GX2 is the Wii U's fancy graphics API. I'm not particularly fluent in it at the time of writing but I hear it's similar to OpenGL. OSScreen will do for this tutorial, however, so we won't really be looking at it.
 
 ### vpad.rpl
-The VPAD library has all the functions you need to communicate with the Gamepad (aka DRC) and other controllers connected to the Wii U.
+The VPAD library has all the functions you need to communicate with the Gamepad (aka DRC).
+
+### sndcore2.rpl / snd_core.rpl
+These two libraries are responsible for sound (along with their friend libraries, `snd_user.rpl` and `snduser2.rpl`) and provide the functions you'll need to make all the strangled noises you want!
+
+This is just a quick course on the most essential libraries, you can find a more complete list (along with specific function documentation) [here](#todo).
+
+***Chapter 2: Over and out!***
+In Chapter 3, we'll have a look at how this all comes together in a HBL-compatible Hello World! Take a look [here](/tutorial/Chapter%203.md).
