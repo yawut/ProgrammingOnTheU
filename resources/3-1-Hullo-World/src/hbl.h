@@ -1,10 +1,3 @@
-#ifndef __OS_DEFS_H_
-#define __OS_DEFS_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct _OsSpecifics
 {
     unsigned int addr_OSDynLoad_Acquire;
@@ -18,8 +11,8 @@ typedef struct _OsSpecifics
     unsigned int addr_KernSyscallTbl5;
 } OsSpecifics;
 
-#ifdef __cplusplus
-}
+#ifndef MEM_BASE
+#define MEM_BASE                    (0x00800000)
 #endif
 
-#endif // __OS_DEFS_H_
+#define OS_SPECIFICS                ((OsSpecifics*)(MEM_BASE + 0x1500))

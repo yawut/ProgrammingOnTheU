@@ -31,7 +31,7 @@ OSDynLoad_FindExport(coreinit_handle, 0, "OSSleepTicks", &OSSleepTicks);
 OSSleepTicks(5000);
 ```
 As you can see, all you need to get any of the Wii U's dynamic functions is one or two calls to OSDynLoad and the prototype for that function. While this is a pretty neat system, it does require you to know all the functions you'll ever want *and* which library to find them in.
-q
+
 So, let's go through the important libraries. You'll pick up functions as you go along, but it's essential to have an idea of where you might find them.
 
 ### coreinit.rpl

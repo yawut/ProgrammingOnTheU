@@ -31,12 +31,8 @@ export OBJCOPY	:=	$(PREFIX)objcopy
 TARGET		:=	hello_world
 BUILD		:=	build
 BUILD_DBG	:=	$(TARGET)_dbg
-SOURCES		:=	src \
-				src/dynamic_libs \
-				src/fs \
-				src/system \
-				src/utils
-DATA		:=	
+SOURCES		:=	src
+DATA		:=
 
 INCLUDES	:=  src
 
