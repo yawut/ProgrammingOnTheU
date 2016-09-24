@@ -1,3 +1,13 @@
+/**
+	ProgrammingOnTheU - Hello World Example application (resource 3.1)
+	See Chapter 3 for details.
+
+	Execution starts at __entry_menu
+**/
+
+/**! HBL compatibility stuff, allows us to avoid hardcoding things **/
+/**! See common/common.h and common/os_defs.h in Dimok-style projects **/
+
 typedef struct _OsSpecifics
 {
     unsigned int addr_OSDynLoad_Acquire;
