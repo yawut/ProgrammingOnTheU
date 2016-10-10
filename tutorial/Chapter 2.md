@@ -8,7 +8,7 @@ Now we've looked at the Wii U from a distance, it's time to get a bit closer to 
 ## The Wii U's Programming Model
 (for browserhax/HBL)
 
-Te Wii U is different to the Wii in that it almost completely revolves around dynamic libraries. The graphics API is a dynamic library, the wcontrollers are accessed with a dynamic library, pretty much everything you can do must be done through a dynamic library. This is pretty clever on Nintendo's part since they can enforce their permissions system in these libraries (although that's not too much of an issue under HBL). Libraries are in ``.rpl`` format (Nintendo's fancy pretty-much-ELF files). There's a whole bunch of them just sitting around in memory ready for you to use.
+The Wii U is different to the Wii in that it almost completely revolves around dynamic libraries. The graphics API is a dynamic library, the wcontrollers are accessed with a dynamic library, pretty much everything you can do must be done through a dynamic library. This is pretty clever on Nintendo's part since they can enforce their permissions system in these libraries (although that's not too much of an issue under HBL). Libraries are in ``.rpl`` format (Nintendo's fancy pretty-much-ELF files). There's a whole bunch of them just sitting around in memory ready for you to use.
 
 Since they're in dynamic libraries, function pointers are used to access most of the in-built functions on the Wii U. The function ``OSDynLoad_Acquire`` will give you a *handle* to a given library, while ``OSDynLoad_FindExport`` will export a function from a library into a function pointer. Here's an example of this in action:
 ```c
