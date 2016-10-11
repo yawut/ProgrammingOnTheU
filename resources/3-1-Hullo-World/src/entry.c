@@ -12,7 +12,7 @@
 
 int __entry_menu(int argc, char **argv) {
 	//casting tomfoolery to let us use Acquire and FindExport
-    OSDynLoad_Acquire = (int(*)(const char*, unsigned int*))(OS_SPECIFICS->addr_OSDynLoad_Acquire);
+	OSDynLoad_Acquire = (int(*)(const char*, unsigned int*))(OS_SPECIFICS->addr_OSDynLoad_Acquire);
 	OSDynLoad_FindExport = (int(*)(unsigned int, int, const char*, void*))(OS_SPECIFICS->addr_OSDynLoad_FindExport);
 
 	//Export the functions we need. See wiiu.h for function pointers.
