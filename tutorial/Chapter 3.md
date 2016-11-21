@@ -3,7 +3,7 @@ A quick thrash for existing programmers
 
 **Chapter 3 - Hello, world!**
 
-Time to get down and dirty with some actual code! I've thrown together a Hello World example for HBL that we're going to take a look at. In this chapter, you'll see how **OSDynLoad** works in practice, the way to use **OSScreen**, reading from the DRC with **VPAD** functions, and it all comes together in a HBL-compatible way.
+Time to get down and dirty with some actual code! I've thrown together a Hello World example for HBL that we're going to take a look at. In this chapter, you'll see how **OSDynLoad** works in practice, the way to use **OSScreen**, reading from the DRC with **VPAD** functions, and how it all comes together in a HBL-compatible way.
 
 Open up [resource 3.1](/resources/3-1-Hullo-World) in a new tab - it's the code we'll be referencing to throughout this chapter.
 
@@ -35,12 +35,14 @@ Pretty much what you'd expect for the first few lines. It's worth noting that `<
 int __entry_menu(int argc, char **argv) {
 ```
 As I briefly mentioned above, `__entry_menu` is the function called by HBL to start the program. It functions identically to your usual `int main(int argc, char **argv)` function. In most cases, you won't get any arguments.
+
 ```c
 //casting tomfoolery to let us use Acquire and FindExport
 OSDynLoad_Acquire = (int(*)(const char*, unsigned int*))(OS_SPECIFICS->addr_OSDynLoad_Acquire);
 OSDynLoad_FindExport = (int(*)(unsigned int, int, const char*, void*))(OS_SPECIFICS->addr_OSDynLoad_FindExport);
 ```
 In this section, we take the addresses from the `OSSpecifics` struct I mentioned above (#defined to 0x00801500) and cast them into the function pointers set up in wiiu.h. This lets us use them to start exporting other functions, which is what we do next.
+
 ```c
 //Export the functions we need. See wiiu.h for function pointers.
 unsigned int coreinit_handle = 0;
@@ -63,3 +65,75 @@ OSDynLoad_FindExport(vpad_handle, 0, "VPADInit", &VPADInit);
 OSDynLoad_FindExport(vpad_handle, 0, "VPADRead", &VPADRead);
 ```
 If you remember how OSDynLoad works (see [Chapter 2](/tutorial/Chapter%202.md) if you don't) this should be fairly self-explanatory, just on a larger scale. Here, we export all the functions we need into their respective pointers, ready for us to use as we need.
+
+```c
+//Time to start setting up OSScreen!
+//Self-explanatory. Don't forget this!
+OSScreenInit();
+```
+Here we call our first OSScreen function - `OSScreenInit`. This function flicks registers and beats the graphics card into submission so we can use the other functions. It should always be called before any other OSScreen function.
+
+```c
+//Get required buffer sizes
+unsigned int buffer0Size = OSScreenGetBufferSizeEx(0);
+unsigned int totalBufferSize = buffer0Size + OSScreenGetBufferSizeEx(1);
+```
+OSScreen has two framebuffers - the first one for the TV and the second one for the DRC (0 and 1, respectivley). To help out with memory managment, we need the size of each. You'll see different approaches to this in different people's code, but here I call `OSScreenGetBufferSizeEx` on each buffer to get the size of the first buffer and the total size of both the buffers. These will be very useful later.
+
+```c
+//Set TV buffer (0) and DRC buffer (1) to reside in MEM1
+OSScreenSetBufferEx(0, (void*)0xF4000000);
+OSScreenSetBufferEx(1, (void*)(0xF4000000 + buffer0Size));
+```
+These two function calls tell OSScreen where we want the pixel data to be kept. The function itself is fairly simple - the buffer number and where we want it it memory. Here we set them to be right after each other (thus the need for the buffer sizes).
+
+You can tell that I'm avoiding the real question here: *Where the heck did 0xF4000000 come from?*
+
+I hinted in the introduction to this tutorial that the Wii U has a lot of different memory chips and areas. The actual system is quite complex, requiring *two* large tables dedicated to this on the wiki. However, the system can be simplified down to three major areas: MEM1, MEM2 and sometimes MEM0. MEM1 is a fairly small chunk of really fast on-die memory mapped from address 0xF4000000 to 0xF6000000. We usually use this for framebuffers due to its speed, although GCC also has a knack for putting arrays in this area - consider this if you get screen corruption! MEM2 is the bulk of the Wii U's memory. While slower than MEM1, it's far larger. It's mapped at 0x10000000. The size, and therefore end address, is defined on a per-app basis, anywhere up to 0x50000000. You're better off interacting with MEM2 via coreinit's MEM functions to deal with this uncertainty. The third area, the bucket, is another smallish area like MEM1. It seems to be used as a hardware communication area in some software, but it still functions like normal memory. In any case, it's worth knowing about and is a useful general-purpose mapping. It's mapped from 0xE0000000 to 0xE4000000.
+
+Thus, to answer the question I posed earlier - the framebuffer is set to 0xF4000000 since it's in MEM1, a really fast and efficient part of the Wii U's memory.
+
+It's worth noting that setting the buffer directly to an arbitrary address like this is sometimes considered bad form and more complex apps will usually have some kind of memory heap that they use to allocate a dedicated space just for the buffer. As long as it's aligned to the nearest 0x100 bytes, OSScreen will happily put the buffer anywhere.
+
+```c
+//Turn on OSScreen for TV (0) and DRC (1)
+OSScreenEnableEx(0, 1);
+OSScreenEnableEx(1, 1);
+```
+These two calls to OSScreenEnableEx are pretty self-explanatory - the first argument is the buffer number while the second argument is a boolean - enable OSScreen or disable OSScreen. These calls might not be neccesary (OSScreenInit flicks all the same switches) but it's nice to have there anyway, just to be safe.
+
+```c
+//Clear each buffer (RGBA colour)
+OSScreenClearBufferEx(0, 0x00000000);
+OSScreenClearBufferEx(1, 0x00000000);
+```
+Here we fill both buffers with a colour of our choosing (black). As with most of the OSScreen methods, the first argument is the buffer number, while in this case the second argument is an RGBA colour (like those used in HTML but with alpha/transparency on the end). In this case, we fill each buffer with black.
+
+```c
+//Print text to TV (buffer 0)
+//Remember: PutFontEx is (bufferNum, x, y, text).
+//X is in characters (monospace font)
+//Y is in lines (small margin between characters)
+//Nintendo just had to be confusing, but this system is actually REALLY helpful once you're used to it.
+OSScreenPutFontEx(0, 0, 0, "Hello World! This is the TV.");
+OSScreenPutFontEx(0, 0, 1, "Press HOME on the DRC to quit back to HBL.");
+
+//Print text to DRC (buffer 1)
+OSScreenPutFontEx(1, 0, 0, "Hello World! This is the DRC.");
+OSScreenPutFontEx(1, 0, 1, "Press HOME on the DRC to quit back to HBL.");
+```
+Time for the good stuff! As you can tell, here's where we write some text to each buffer. Each buffer can be written to seperately and independently as shown here (with different text on each display). The comments in the code explain the arguments well enough so I won't go over them again here - it's really a "try it and see" situation anyway.
+
+```c
+//Flush data to memory (read the tutorial please)
+DCFlushRange((void*)0xF4000000, totalBufferSize);
+```
+To cut an insanely long story short(ish); many years ago, someone at IBM decided that their shiny new PowerPC needed to cache memory (okay, memory caching is far older than that, but stay with me here). Thus, every PowerPC was given an internal chunk of memory. Due to it being inside the processor, it's stupidly fast - but you can't use it. The purpose of this memory is to be a mediator between the actual memory chips and the number-crunching bit of the processor - a cache. For those unfamiliar with caching, the idea is that you have a resource that's slow to access (main memory) and a temporary location that's very fast (the cache). When you try to read some memory, the processor first checks if there's a copy in the cache. If there is, it'll read that instead (because it's faster). A similar rule applies to when you're writing memory. Periodically, stuff in the cache will filter back down to main memory and everyone's happy.
+
+This works great when there's a single PowerPC and nothing else. However, we have a graphics card to contend with - a graphics card that knows nothing of the cache and just wants a complete location in memory to read its pixel data from. Without programmer intervention, we'd end up with a situation where not all our newly-written pixel data ends up in memory (because it's still in the cache) and the graphics card ends up reading who-knows-what instead.
+
+Thus, we, the programmers, intervene. When we "flush" a cache, we write whatever is in the cache into main memory. When we "invalidate" a cache, we tell the processor that the cache is not to be trusted and that it should read from main memory. Invalidaing is useful when some other bit of hardware starts messing with memory (looking at you, sound card) and we need to read that instead of what's in the cache. The PowerPC has seperate caches for instructions and data (although you can't flush the instruction cache, which is fair enough when you think about it); so to achieve what we need, we have to **flush** the **data cache** (we've been writing *data*) into memory. We only need to flush a section (or **range**) - the framebuffer.
+
+Thus, DCFlushRange (**d**ata **c**ache **flush range**) is the function we use for the job. We start flushing at the address of our framebuffer (0xF4000000) and we keep on flushing for the size of the buffer (totalBufferSize). It's worth noting that due to the way the PowerPC arranges memory (in "blocks") you shouldn't trust the size to be interpreted as an exact number of bytes - the cache flush is likely to flush a bit more memory than what you asked.
+
+
