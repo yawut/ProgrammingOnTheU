@@ -136,4 +136,78 @@ Thus, we, the programmers, intervene. When we "flush" a cache, we write whatever
 
 Thus, DCFlushRange (**d**ata **c**ache **flush range**) is the function we use for the job. We start flushing at the address of our framebuffer (0xF4000000) and we keep on flushing for the size of the buffer (totalBufferSize). It's worth noting that due to the way the PowerPC arranges memory (in "blocks") you shouldn't trust the size to be interpreted as an exact number of bytes - the cache flush is likely to flush a bit more memory than what you asked.
 
+```c
+//Flip the buffers, our text is now onscreen. Kinda like "committing" your changes.
+OSScreenFlipBuffersEx(0);
+OSScreenFlipBuffersEx(1);
+```
+Finally, once everything is in main memory, we tell the graphics card it's okay to **flip the buffers**. You see, up until this point, we've been working on a buffer that's not actually on screen. Two buffers have been allocated - one for the graphics card to show onscreen and one for the OSScreen functions to operate on. In order to show all the graphics we've just rendered on-screen, we simply swap these buffers around - the one you've been writing to becomes the on on-screen and vice-versa. This system (called *double-buffering*) makes sure that there's never any flicker or weird artefacts.
 
+Ta-da! At this point, our text is shown onscreen. If you want, you can just drop into a `while (1) {}` or `for (;;) {}` (common practices in embedded programming) and marvel at the wonderous font.
+
+One problem - that's *boring.* I said we'd mess with the DRC, and mess we shall.
+
+```c
+//Set up the DRC
+VPADInit();
+
+//Variables to hold button data
+VPADData vpad;
+int error;
+```
+I reckon these are fairly self-explanatory - we call `VPADInit` to initialise the library and Gamepad, then set up a `VPADData` struct to hold the information we retrieve. We also make a variable to let us know of any errors the library faces.
+
+```c
+for (;;) {
+	VPADRead(0, &vpad, 1, &error);
+```
+Here we have the VPADRead function, which (as implied) reads the DRC's status. The first argument is supposedly a channel, but since the console only supports one Gamepad at a time this argument is always 0. (Side note: the "channel" variable gets waaaay down into the base WiFi driver, fully implemented.) Next is a pointer to our VPADData struct to write into. The third argument is a strange one - It claims to be the number of arrays to write, but nobody has really found a use for writing more than one array. Thus, we just hardcode it to 1. The final argument is a pointer to write any errors to.
+
+*(P.S: `for (;;)` is a C trick that basically means `while (1)` but can be more efficient on some older compilers.)*
+
+```c
+if (!error) {
+	if (vpad.btns_h & VPAD_BUTTON_HOME) {
+		break;
+	}
+}
+```
+
+VPADRead fills out a struct (usually named VPADData) that contain a bunch of bitmasked integers with button data. Here we take a look at `btns_h`, which contains buttons currently being *held.* Similar variables exist for buttons that were triggered and released on that poll (although these can be a little finicky); as well as lots of other information about what the DRC is up to like the touch-screen data and battery level. Check out the VPADData struct declaration in wiiu.h for more details. Anyway, this condition comes out as "if the home button is pressed", whereupon we break from the loop.
+
+```c
+//Quickly clear out the OSScreen framebuffer.
+//We don't need to do this, but it's good practice.
+
+OSScreenClearBufferEx(0, 0x00000000);
+OSScreenClearBufferEx(1, 0x00000000);
+
+OSScreenFlipBuffersEx(0);
+OSScreenFlipBuffersEx(1);
+
+OSScreenClearBufferEx(0, 0x00000000);
+OSScreenClearBufferEx(1, 0x00000000);
+
+DCFlushRange((void*)0xF4000000, totalBufferSize);
+```
+
+Before quitting, it's a good idea to quickly clean up your framebuffers. Since OSScreen simply works with raw memory and we didn't use any kind of memory managment there's a risk we may leave some garbage data in memory before quitting. While this usually isn't an issue, HBL seems to be a bit picky about this sort of thing. Your mileage may vary.
+
+As for the code, we simply fill both buffers with black and flush the relevant caches. Since black is represented with zeros, we end up with nice, clean memory and a blank screen to boot.
+
+```c
+    return EXIT_SUCCESS;
+}
+```
+
+We're done! Return your favorite status code that HBL will almost definitely ignore (except for `EXIT_RELAUNCH_ON_LOAD`, which boots Mii Maker and is not particularly useful) and revel in the way it cleanly exits back to HBL.
+
+# Suggestions and Further Learning
+
+Once you've gotten over your excitment about it not crashing, I stronly implore you to take the opportunity to read the code an mess with it. It's all available as [resource 3.1](/resources/3-1-Hullo-World) - compile it, play with it, get a feel for it. Here's some suggestions:
+
+ - Change which button the code looks out for. Why not A? ZR? One of the stick buttons?
+ - Add a few more lines of text of your own choosing. Remember double-buffering!
+ - If you're feeling confident, why not FindExport `OSSleepTicks` (from earlier in the tutorial) and add a sleep to the for loop? It's working the CPU pretty hard right now, after all. Be careful though - a sleep for too long will make the DRC feel unresponsive!
+
+This is how I learnt - playing with existing code (I drew circles on a button tester!) and experimenting around. If you get stuck or need help, feel free to ask! Every other developer you'll find has been here before and they'll gladly help you out.
