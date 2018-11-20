@@ -82,3 +82,39 @@ OSScreenEnableEx(SCREEN_TV, true);
 OSScreenEnableEx(SCREEN_DRC, true);
 ```
 With that, we've got OSScreen set up and good to go! We call [`OSScreenEnableEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga0dd2476b23f7f4e52a5167f2335773e3) to have OSScreen actually take control of the displays and get our framebuffer up.
+
+With all our initiaisation code out of the way, it's time to get on with our planetary greetings!
+
+```c
+while(WHBProcIsRunning()) {
+```
+I talked before about what libwhb's ProcUI wrapper does - managing foreground/background states, some system poweroff features, whether we need to quit, things like that. All that processing actually happens within this call - `WHBProcIsRunning` calls out to Nintendo's ProcUI library, handles any requested foreground/background transitions, then finally returns true or false depending on whether the app should keep running. Due to the nature of the work it does, it makes sense to call this semi-regularly - so I elected to use it for a while loop in this example.
+
+```c
+OSScreenClearBufferEx(SCREEN_TV, 0x00000000);
+OSScreenClearBufferEx(SCREEN_DRC, 0x00000000);
+```
+So, we're inside our loop - it's time to start rendering! We start with calls to [`OSScreenClearBufferEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#gaa265bdc1d4e801a8e9495ab4f4cabafe) for both the TV and Gamepad - this will wipe both framebuffers clean, filling them with the colour we request. Here, we pass in `0x00000000` - this is RGBX format colour. That means the first two digits are the red value, the next two are green, the third two are blue and the last two are ignored. All the values range from 00 to FF. So, this colour has 00 red, 00 green, and 00 blue... sounds like black! Making both screens black gives us a convenient starting point to render on top of.
+
+```c
+OSScreenPutFontEx(SCREEN_TV, 0, 0, "Hello world! This is the TV.");
+OSScreenPutFontEx(SCREEN_TV, 0, 1, "Neat, right?");
+
+OSScreenPutFontEx(SCREEN_DRC, 0, 0, "Hello world! This is the DRC.");
+OSScreenPutFontEx(SCREEN_DRC, 0, 1, "Neat, right?");
+```
+Now we've cleared out our framebuffer, we can render some text into it! This is done with [`OSScreenPutFontEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#gacf5e67a9873092ab755c3af2db421a01) - it takes a screen, a row and column to start the text at; measured in *characters*, not pixels; and finally the string to actually draw. Here we put the text `"Neat, right?"` on the line below the `"Hello World!"` text - that third parameter is the row the text should start on.
+
+One thing to keep in mind when using OSScreenPutFontEx is that the Wii U does no scaling - you can actually fit more characters on the TV when it's running at a resolution like 1080p or 720p. The Gamepad is always 480p, so you need to be careful - even if your text looks fine on the TV, it might be outside the borders of the Gamepad! There are ways to stretch the TV image so everything matches, but that's outside the scope of this tutorial.
+
+At this point, you might think we're done - We've rendered our text, right? Sadly, we're not quite there yet - there's two things that remain to be done: flushing and flipping the buffers.
+
+```c
+DCFlushRange(tvBuffer, tvBufferSize);
+DCFlushRange(drcBuffer, drcBufferSize);
+```
+It'd be crazy to try and fully explain everything that's going on here in a few short paragraphs. For those of you who are good with your CPU internals, this function flushes the buffers since the Wii U hardware isn't cache-coherent. You can probably skip to the next snippet now! For the rest of us, let's dive in.
+
+If you remember the recap of computer science from Chapter 1, you'll know that all our data and code is stored in memory. The thing is, memory is *slow*. Compared to the CPU, it's outright unbearable. If the CPU interfaced with memory directly, it could easily spend most of its time waiting on the memory to cough up the required data. To solve this problem, modern computers have a **cache** - A small area of memory, usually inside the CPU chip itself. Despite its size - 512KiB on the Wii U (one of the three cores has 2MiB) - this memory is blazingly fast. You can't access it directly though; instead the CPU manages it, keeping a copy of any recently-accessed memory there. If the CPU needs to use that same memory again, it can get the data from the cache instead of the much slower main memory! It can also save some time by writing memory changes to the cache and letting the changes "filter down" to main memory in their own time - this is useful for things like counters that change frequently but don't really need to be in main memory.
+
+This is great and results in a much faster system. There is one problem though - since the CPU can write to the cache without actually updating main memory, all our OSScreen rendering efforts may be caught up in the cache while memory remains outdated. 
