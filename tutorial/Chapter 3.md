@@ -40,6 +40,8 @@ WHBLogPrint("Hello World! Logging initialised.");
 ```
 Here we set up some logging! libwhb has this neat system where you can set up as many logging backends as you like, and your messages will get sent to all of them. First, we call `WHBLogCafeInit` to set up libwhb's Cafe logger - this uses the Wii U's internal logging systems. These aren't usually visible to you, but the messages do show up when using `decaf-emu` (a Wii U emulator) or when viewing certain crash logs on-console. Next, we call `WHBLogUdpInit` to init the UDP logger - it'll send all log messages out over the network. These can be recieved with the `udplogserver` tool, included with wut. We can now use `WHBLogPrint` to send out our first message!
 
+libwhb also ships with a "Console" logging backend, which prints your log messages to the screen. For the purposes of this tutorial, we're going to handle printing to the screen ourselves! We'll have a quick look at the Console backend later so you can save time for simple projects. In any case, let's continue with the code.
+
 ```c
 WHBProcInit();
 ```
@@ -67,7 +69,7 @@ void* drcBuffer = memalign(0x100, drcBufferSize);
 ```
 Now we can actually allocate! There's nothing too noteworthy here, except my choice of `memalign` over a normal `malloc`.
 
-*Note: allocations and local variables do not neccesarily start zeroed on Cafe like they do on other platforms - make sure you account for this or use calloc!*
+*Note: allocations and local variables do not necessarily start zeroed on Cafe like they do on other platforms - make sure you account for this or use calloc!*
 
 I'm going to skip over the nullcheck here - you can go look at it in the code if you want, but rest assured it's just an `if (!tvBuffer || !drcBuffer)` followed by the shutdown code we'll look at later.
 
@@ -117,4 +119,58 @@ It'd be crazy to try and fully explain everything that's going on here in a few 
 
 If you remember the recap of computer science from Chapter 1, you'll know that all our data and code is stored in memory. The thing is, memory is *slow*. Compared to the CPU, it's outright unbearable. If the CPU interfaced with memory directly, it could easily spend most of its time waiting on the memory to cough up the required data. To solve this problem, modern computers have a **cache** - A small area of memory, usually inside the CPU chip itself. Despite its size - 512KiB on the Wii U (one of the three cores has 2MiB) - this memory is blazingly fast. You can't access it directly though; instead the CPU manages it, keeping a copy of any recently-accessed memory there. If the CPU needs to use that same memory again, it can get the data from the cache instead of the much slower main memory! It can also save some time by writing memory changes to the cache and letting the changes "filter down" to main memory in their own time - this is useful for things like counters that change frequently but don't really need to be in main memory.
 
-This is great and results in a much faster system. There is one problem though - since the CPU can write to the cache without actually updating main memory, all our OSScreen rendering efforts may be caught up in the cache while memory remains outdated. 
+This is great and results in a much faster system. There is one problem though - since the CPU can write to the cache without actually updating main memory, all our OSScreen rendering efforts may be caught up in the cache while memory remains outdated. This isn't an issue for our code on the CPU - we'll always read the most recent data - but the GPU is a different story. It knows nothing of the CPU's caches and just wants to read our pixel data from main memory. We can ensure that our writes from the CPU are actually in memory by *flushing* the cache - any changes stuck in the cache are written out and we can rest assured that main memory actually contains the data we wrote. That's why we need to call these functions - we flush any pending writes out of the data cache (**d**ata **c**ache **flush** **range**, or [`DCFlushRange`](https://decaf-emu.github.io/wut/group__coreinit__cache.html#ga3189eaf014ed0ec62c6ecfc5f25d658a)), so we can know that the GPU can read our image correctly and display what we want it to. 
+
+With that out of the way...
+
+```c
+OSScreenFlipBuffersEx(SCREEN_TV);
+OSScreenFlipBuffersEx(SCREEN_DRC);
+```
+We've been drawing plenty of text into the OSScreen framebuffers, but if we stopped right here none of it would actually show up on screen. That's because all our text and image data has been drawn into the *work buffer* - a secondary framebuffer that everything gets drawn to. The screen doesn't show the work buffer, instead displaying the *visible buffer*. When we're ready, we can swap these two buffers by calling [`OSScreenFlipBuffersEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga09b9072ab8dd2095f97ba39e24e3b76b) - the work buffer becomes the visible buffer and is shown on-screen, while the old visible buffer becomes our new work buffer. This is known as "flipping" the buffers. This system is used to avoid screen tearing and visual glitches while we draw - things are only shown on-screen once we're ready to show them. It also gives us a chance to sort out the caches!
+
+```c
+}
+WHBLogPrint("Got shutdown request!");
+```
+At this point, our text is on-screen! Marvel at it in all its glory. The while loop we set up before will continue looping, constantly drawing new frames and displaying them. Pressing the HOME button will make `WHBProcIsRunning` return false, ending the loop and telling us to clean up and quit.
+
+```c
+if (tvBuffer) free(tvBuffer);
+if (drcBuffer) free(drcBuffer);
+```
+We allocated these buffers earlier, so it's essential that we free them as part of our cleanup process. While PC applications can get away with being a tad lax here, the Wii U is a different story - depending on how your application ends up getting launched, it's possible for memory leaks to stick around after your application exits, sapping memory space from other programs. So, we play good citizen and free our buffers here.
+
+*Note: Depending on which allocator your app uses (more on this later), calling `free(NULL)` can result in an application crash. To be safe, always do a null-check before freeing.*
+
+```c
+OSScreenShutdown();
+WHBProcShutdown();
+
+WHBLogPrint("Quitting.");
+WHBLogCafeDeinit();
+WHBLogUdpDeinit();
+```
+Not much to say here - we simply de-init the libraries we were using. Again, it's essential that we do this thoroughly to prevent knock-on effects to other applications.
+
+```c
+    return 1;
+}
+```
+Well, that's it! We return a sane value here (some significance may be assigned to them in future) and our application quits!
+
+*Note: Returning `-3` is reserved for HBL - in most cases, returning this will cause Mii Maker to open.*
+
+## Suggestions and Further Learning
+Once you've gotten over your obvious excitement (it didn't crash!) I recommend you go download a copy of the code ([resource 3.1](/resources/3-1-HelloWorld)) and mess with it. Tweak things, move chunks of code around, add new calls and logic, whatever. While you might break the app, I assure you it's impossible to break your console with OSScreen - if the worst happens and your code becomes unresponsive, just hold the power button down until the console switches off (the power LED will turn red). Get used to that - You'll probably be doing it a lot!
+  
+Here's some ideas for things you might change:
+
+ - Change the text that gets drawn onscreen - change some words, maybe write a whole new message? Add a few extra lines of text. How much can you write before going off the side of the screen?
+ - Change the background colour. Red or blue is easy - how about yellow? Purple? Try a different colour on the TV and the Gamepad.
+ - Remember [`OSSleepTicks`](https://decaf-emu.github.io/wut/group__coreinit__thread.html#gaec240f68873bb19c753cfdd346264c17), from Chapter 2? Try adding a small delay at the end of the while loop - how long can you wait before controls start becoming unresponsive? Don't forget your `#include`s.
+ - Play around with some of the other [OSScreen functions](https://decaf-emu.github.io/wut/group__coreinit__screen.html) - how about [`OSScreenPutPixelEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga3f4b6594fdc62b57e5ceb6cdc0e57d5a)? Try drawing some shapes with that.
+ 
+It may seem somewhat silly, but this is how I learnt and how most of the other Wii U developers I talked to learnt - taking existing code and experimenting on it; changing it to do whatever they want it to do. If you get stuck, feel free to ask for help! We've all been there and will gladly help. Wherever you found out about this tutorial is probably a good place to try.
+
+***Chapter 3: So long!*** Chapter 4 isn't quite ready yet - please check back later! I'll be sure to mention it on my social accounts; [pick your platform](https://heyquark.com/aboutme/) if you're into that.
