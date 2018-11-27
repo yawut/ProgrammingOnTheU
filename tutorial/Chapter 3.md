@@ -3,7 +3,7 @@ A quick thrash for existing programmers
 
 **Chapter 3 - Hello, world!**
 
-Alright, let's get into it! We're going to look at a very simple wut application that uses two major libraries - **libwhb** and **OSScreen**. We'll take a quick look at (TODO finish writing intro)
+Alright, let's get into it! We're going to look at a very simple wut application that uses two major libraries - **libwhb** and **OSScreen**. We'll take a quick look at the structure of a wut application, the headers you might need, setting up logging and graphics, and some of libwhb's helpers to manage your app's lifecycle.
 
 Open up [resource 3.1](/resources/3-1-HelloWorld) in another tab - that's the code we'll be referencing throughout this chapter. We've only got two files there - `CMakeLists.txt` and `main.c`. `CMakeLists.txt` is part of the wut build system - as you've probably guessed, wut uses cmake to build homebrew, using macros to add a few extensions we'll look at later. `main.c` is the only source file for this app, and it's what we'll look at first in this chapter.
 
