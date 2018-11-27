@@ -162,8 +162,24 @@ Well, that's it! We return a sane value here (some significance may be assigned 
 
 *Note: Returning `-3` is reserved for HBL - in most cases, returning this will cause Mii Maker to open.*
 
+## A Very Quick Compilation Run-Through
+Now we've got the code in order and ready for use, it's time for compiling. Covering the whole range of setups and possibilities for compiling is well outside the scope of this tutorial, so I'm gonna assume you've got that sorted in your own time. CMake builds are pretty well standardised across platforms and whatever, so assuming you're on a UNIXy system - that's Linux, macOS, OSX, msys2, WSL/Ubuntu on Windows, and, well, basically anything that's not Windows' standard command processor (I belive devkitPro ships with msys2) then this should look very familiar to you:
+```shell
+# Change into the folder where CMakeLists.txt is located
+cd resources/3-1-HelloWorld
+# Make a directory to build in - this is called out-of-tree building
+mkdir build
+cd build
+# Run cmake, pointing it to the parent (where CMakeLists.txt is) - this will
+# generate a Makefile
+cmake ..
+# Run make to actually build the app
+make
+```
+Once you've done that, you should get `helloworld.rpx` in your build folder! This can be sent to HBL with tools like `wiiload` or dropped on your SD somewhere like `sd:/wiiu/apps/helloworld/helloworld.rpx` (fun fact: HBL doesn't actually need a meta.xml to show an app). Once running, you can run `udplogserver` to show the messages sent through `WHBLogPrintf`. Take a moment to run the app and see it in action!
+
 ## Suggestions and Further Learning
-Once you've gotten over your obvious excitement (it didn't crash!) I recommend you go download a copy of the code ([resource 3.1](/resources/3-1-HelloWorld)) and mess with it. Tweak things, move chunks of code around, add new calls and logic, whatever. While you might break the app, I assure you it's impossible to break your console with OSScreen - if the worst happens and your code becomes unresponsive, just hold the power button down until the console switches off (the power LED will turn red). Get used to that - You'll probably be doing it a lot!
+Once you've gotten over your obvious excitement (it didn't crash!) I recommend you go download a copy of the code ([resource 3.1](/resources/3-1-HelloWorld)) and mess with it. Tweak things, move chunks of code around, add new calls and logic, whatever - run `make` again after each change, and try the new code on-console. While you might break the app, I assure you it's impossible to break your console with OSScreen - if the worst happens and your code becomes unresponsive, just hold the power button down until the console switches off (the power LED will turn red). Get used to that - You'll probably be doing it a lot!
 
 Here's some ideas for things you might change:
 
