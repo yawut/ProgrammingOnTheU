@@ -3,6 +3,7 @@
 #include <malloc.h>
 
 #include <coreinit/screen.h>
+#include <coreinit/cache.h>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
 #include <whb/log.h>
@@ -24,13 +25,13 @@ int main(int argc, char** argv) {
     draw some text! */
     OSScreenInit();
 
-/*  OSScreen needs buffers for each display - get the size of those now. 
+/*  OSScreen needs buffers for each display - get the size of those now.
     "DRC" is Nintendo's acronym for the Gamepad. */
     size_t tvBufferSize = OSScreenGetBufferSizeEx(SCREEN_TV);
     size_t drcBufferSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
     WHBLogPrintf("Will allocate 0x%X bytes for the TV, " \
                  "and 0x%X bytes for the DRC.",
-                 tvBufferSize, drcBufferSize)
+                 tvBufferSize, drcBufferSize);
 
 /*  Try to allocate an area for the buffers. According to OSScreenSetBufferEx's
     documentation, these need to be 0x100 aligned. */
@@ -90,9 +91,9 @@ int main(int argc, char** argv) {
         OSScreenFlipBuffersEx(SCREEN_TV);
         OSScreenFlipBuffersEx(SCREEN_DRC);
     }
-    
+
     WHBLogPrint("Got shutdown request!");
-    
+
 /*  It's vital to free everything - under certain circumstances, your memory
     allocations can stay allocated even after you quit. */
     if (tvBuffer) free(tvBuffer);
