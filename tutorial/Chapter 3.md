@@ -21,12 +21,13 @@ This is about what you'd expect from a C program. There are a few small consider
 
 ```c
 #include <coreinit/screen.h>
+#include <coreinit/cache.h>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
 #include <whb/log.h>
 #include <whb/proc.h>
 ```
-Here's our first hint that this is no average C program! [`<coreinit/screen.h>`](https://decaf-emu.github.io/wut/screen_8h.html) is a wut-supplied header that contains all the OSScreen functions we'll be using later to make some graphics. The other three headers are from libwhb, pulling in logging (with both Cafe and UDP backends - more on this later) and `proc.h`, which we'll also come to soon enough.
+Here's our first hint that this is no average C program! [`<coreinit/screen.h>`](https://decaf-emu.github.io/wut/screen_8h.html) is a wut-supplied header that contains all the OSScreen functions we'll be using later to make some graphics. [`<coreinit/cache.h>`](https://decaf-emu.github.io/wut/cache_8h.html) provides functions to manage the processor cache - we'll look at these in detail when we use them. The other three headers are from libwhb, pulling in logging (with both Cafe and UDP backends - more on this later) and `proc.h`, which we'll also come to soon enough.
 
 ```c
 int main(int argc, char** argv) {
