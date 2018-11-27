@@ -59,7 +59,7 @@ size_t tvBufferSize = OSScreenGetBufferSizeEx(SCREEN_TV);
 size_t drcBufferSize = OSScreenGetBufferSizeEx(SCREEN_DRC);
 WHBLogPrintf("Will allocate 0x%X bytes for the TV, " \
              "and 0x%X bytes for the DRC.",
-             tvBufferSize, drcBufferSize)
+             tvBufferSize, drcBufferSize);
 ```
 OSScreen needs two memory areas to put framebuffers in - here we use [`OSScreenGetBufferSizeEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga14a0a2e005fc00ddd23ac58aff566ee5) to ask how much it needs, both for the TV and DRC (Gamepad). The size needed depends on the resolution the Wii U is running at, so it's important we ask. We'll need access to these sizes even after allocation for reasons we'll see later, so I stick them in variables.
 
