@@ -16,4 +16,5 @@ target_link_libraries(helloworld
     sysapp
     nsysnet)
 
+wut_enable_newlib(helloworld)
 wut_create_rpx(helloworld.rpx helloworld)
