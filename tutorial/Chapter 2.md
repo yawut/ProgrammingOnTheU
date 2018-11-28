@@ -5,8 +5,7 @@ A quick thrash for existing programmers
 
 Now we've looked at the Wii U from a distance, it's time to get a bit closer to what you'll be seeing on the metal. In this chapter, we'll be taking a quick overview of the important system libraries and how they work, what sort of memory setup we get, and what this is all used for in real life.
 
-## The Wii U's Programming Model
-(for RPX/wut)
+## The Wii U's Programming Model (for RPX/wut)
 
 The Wii U is different to the Wii in that it almost completely revolves around dynamic libraries. The graphics API is a dynamic library, the controllers are accessed with a dynamic library, pretty much everything you can do must be done through a dynamic library. This is pretty clever on Nintendo's part since they can enforce their permissions system in these libraries (although that's not too much of an issue for homebrew). Libraries are in ``.rpl`` format - they're just RPX with the extension changed. There's a whole bunch of them just sitting around in memory ready for you to use.
 
@@ -31,17 +30,17 @@ OSSleepTicks(5000);
 //Let's use one to sleep for 5 seconds.
 OSSleepTicks(OSSecondsToTicks(5));
 ```
-WUT provides headers for most of Nintendo's libraries - you can use any function by including the appropriate header and possibly tweaking the link flags (more on this later).
+WUT provides headers for most of Nintendo's libraries - you can use any function by including the appropriate header and possibly tweaking the linker flags (more on this later).
 
 So, let's go through the important libraries. You'll pick up functions as you go along, but it's essential to have an idea of where you might find them.
 
 ### coreinit.rpl
-[Coreinit](https://decaf-emu.github.io/wut/group__coreinit.html) is the mother of all the Wii U's dynamic libraries. It's basically a "misc" library that has everything from memory manipulation to SD card access to system information to obscure PowerPC instructions, and even a simple graphics system. Coreinit is often the first library accessed by any homebrew due to the sheer range of essential things that it can do.
+[Coreinit](https://decaf-emu.github.io/wut/group__coreinit.html) is the mother of all of the Wii U's dynamic libraries. It's a miscellaneous library that has everything from memory manipulation to SD card access to system information to obscure PowerPC instructions, and even a simple graphics system. Coreinit is often the first library accessed by any homebrew due to the sheer range of essential things that it can do.
 
 Here's a few examples of useful coreinit functions:
  - The [**OSScreen**](https://decaf-emu.github.io/wut/group__coreinit__screen.html) group of functions, which provide a simple graphics system that just works. You get a framebuffer and a font renderer - we'll look at OSScreen in Chapter 3.
  - The **MEM** group of functions provide an easy way to manage memory and use heaps (lower-level equivalents of `malloc()` etc.). wut's default memory management setup dictates that you should generally avoid these functions - more on this in a later chapter.
- - The [**FS**](https://decaf-emu.github.io/wut/group__coreinit__fs.html) set of functions talk to the SD card and other internal storage locations on the Wii U. wut optionally provides a wrapper for these, allowing you to use standard C file I/O.
+ - The [**FS**](https://decaf-emu.github.io/wut/group__coreinit__fs.html) set of functions talk to the SD card and other internal storage locations on the Wii U. wut optionally provides a wrapper for these, allowing you to use standard C I/O functions such as `fopen()`.
  - The [**DC** and **IC**](https://decaf-emu.github.io/wut/group__coreinit__cache.html) functions, which deal with the PowerPC's caching system and help enforce your favorite cache coherency model (because everyone has one of those).
  - All the other functions, such as the [**IM**](https://decaf-emu.github.io/wut/group__coreinit__energysaver.html) set which deal with power management, the [**IOS**](https://decaf-emu.github.io/wut/group__coreinit__ios.html) group which does exactly what you think they do, the [**MCP**](https://decaf-emu.github.io/wut/group__coreinit__mcp.html) set which handle title installing and management, all the miscellaneous functions under **OS**... the list goes on.
 

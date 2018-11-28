@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     crash logs) and over UDP to be received with udplogserver. */
     WHBLogCafeInit();
     WHBLogUdpInit();
-/*  \n characters are option with WHBLog */
+/*  WHBLogPrint and WHBLogPrintf add new line characters for you */
     WHBLogPrint("Hello World! Logging initialised.");
 
 /*  Init WHB's ProcUI wrapper. This will manage all the little Cafe OS bits and
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
         DCFlushRange(tvBuffer, tvBufferSize);
         DCFlushRange(drcBuffer, drcBufferSize);
 
-    /*  Flip buffers - the next is now on screen! Flipping is kinda like
+    /*  Flip buffers - the text is now on screen! Flipping is kinda like
         committing your graphics changes. */
         OSScreenFlipBuffersEx(SCREEN_TV);
         OSScreenFlipBuffersEx(SCREEN_DRC);
