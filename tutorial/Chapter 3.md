@@ -39,7 +39,7 @@ WHBLogCafeInit();
 WHBLogUdpInit();
 WHBLogPrint("Hello World! Logging initialised.");
 ```
-Here we set up some logging! libwhb has this neat system where you can set up as many logging backends as you like, and your messages will get sent to all of them. First, we call `WHBLogCafeInit` to set up libwhb's Cafe logger - this uses the Wii U's internal logging systems. These aren't usually visible to you, but the messages do show up when using `decaf-emu` (a Wii U emulator) or when viewing certain crash logs on-console. Next, we call `WHBLogUdpInit` to init the UDP logger - it'll send all log messages out over the network. These can be recieved with the `udplogserver` tool, included with wut. We can now use `WHBLogPrint` to send out our first message!
+Here we set up some logging! libwhb has this neat system where you can enable several logging backends, and your messages will get sent to all of them. First, we call `WHBLogCafeInit` to set up libwhb's Cafe logger - this uses the Wii U's internal logging systems. These aren't usually visible to you, but the messages do show up when using `decaf-emu` (a Wii U emulator) or when viewing certain crash logs on-console. Next, we call `WHBLogUdpInit` to init the UDP logger - it'll send all log messages out over the network. These can be recieved with the `udplogserver` tool, included with wut. We can now use `WHBLogPrint` to send out our first message!
 
 libwhb also ships with a "Console" logging backend, which prints your log messages to the screen. For the purposes of this tutorial, we're going to handle printing to the screen ourselves! We'll have a quick look at the Console backend later so you can save time for simple projects. In any case, let's continue with the code.
 
@@ -78,7 +78,7 @@ I'm going to skip over the nullcheck here - you can go look at it in the code if
 OSScreenSetBufferEx(SCREEN_TV, tvBuffer);
 OSScreenSetBufferEx(SCREEN_DRC, drcBuffer);
 ```
-So, we've allocated the memory OSScreen asked for, so now we just have to tell it! This code should be pretty self-explanatory - we use [`OSScreenSetBufferEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#gae7f7bf93df292c52972baf07b0ba8116) to set the pointers for both the TV and DRC screens. If you check out the linked documentation for that function, you'll note how it stresses the pointers should be 0x100 aligned - this is the reason I went with `memalign` before.
+So, we've allocated the memory OSScreen asked for, so now we just have to tell it where it is! This code should be pretty self-explanatory - we use [`OSScreenSetBufferEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#gae7f7bf93df292c52972baf07b0ba8116) to set the pointers for both the TV and DRC screens. If you check out the linked documentation for that function, you'll note how it stresses the pointers should be 0x100 aligned - this is the reason I went with `memalign` before.
 
 ```c
 OSScreenEnableEx(SCREEN_TV, true);
