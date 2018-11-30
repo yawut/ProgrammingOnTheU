@@ -62,7 +62,7 @@ WHBLogPrintf("Will allocate 0x%X bytes for the TV, " \
              "and 0x%X bytes for the DRC.",
              tvBufferSize, drcBufferSize);
 ```
-OSScreen needs two memory areas to put framebuffers in - here we use [`OSScreenGetBufferSizeEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga14a0a2e005fc00ddd23ac58aff566ee5) to ask how much it needs, both for the TV and DRC (Gamepad). The size needed depends on the resolution the Wii U is running at, so it's important we ask. We'll need access to these sizes even after allocation for reasons we'll see later, so I stick them in variables.
+OSScreen needs two memory areas to put framebuffers in - here we use [`OSScreenGetBufferSizeEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga14a0a2e005fc00ddd23ac58aff566ee5) to ask how much it needs, both for the TV and DRC (Gamepad). We'll need access to these sizes even after allocation for reasons we'll see later, so I stick them in variables.
 
 ```c
 void* tvBuffer = memalign(0x100, tvBufferSize);
@@ -108,7 +108,7 @@ OSScreenPutFontEx(SCREEN_DRC, 0, 1, "Neat, right?");
 ```
 Now we've cleared out our framebuffer, we can render some text into it! This is done with [`OSScreenPutFontEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#gacf5e67a9873092ab755c3af2db421a01) - it takes a screen, a row and column to start the text at; measured in *characters*, not pixels; and finally the string to actually draw. Here we put the text `"Neat, right?"` on the line below the `"Hello World!"` text - that third parameter is the row the text should start on.
 
-One thing to keep in mind when using OSScreenPutFontEx is that the Wii U does no scaling - you can actually fit more characters on the TV when it's running at a resolution like 1080p or 720p. The Gamepad is always 480p, so you need to be careful - even if your text looks fine on the TV, it might be outside the borders of the Gamepad! There are ways to stretch the TV image so everything matches, but that's outside the scope of this tutorial.
+One thing to keep in mind when using OSScreenPutFontEx is that the TV runs at a higher resolution than the Gamepad. OSScreen runs the TV at 720p, with the result being scaled to the actual system resolution later. The Gamepad is always 480p, so you need to be careful - even if your text looks fine on the TV, it might be outside the borders of the Gamepad! There are ways to stretch the TV image so everything matches, but that's outside the scope of this tutorial.
 
 At this point, you might think we're done - We've rendered our text, right? Sadly, we're not quite there yet - there's two things that remain to be done: flushing and flipping the buffers.
 
