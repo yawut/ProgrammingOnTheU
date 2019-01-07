@@ -40,58 +40,100 @@ The environment required to build software for the Wii U (more specifically, usi
 
 Please note that while devkitPPC is supported on Windows, wut is not. If you wish to use Windows to perform development activity, you may wish to install Ubuntu or another GNU/Linux distribution from the Microsoft Store app, and perform these instructions within the virtualised Linux subsystem. If you natively use a GNU/Linux distribution or macOS, you should be able to follow these instructions.
 
-### Step 1: Install the devkitPro package manager
-The devkitPPC compiler toolchain is part of a larger set of software programs called devkitPro, which provides toolchains for development of homebrew for platforms such as the Nintendo 3DS, Switch, GameCube and Wii, as well as others. As such, devkitPro has its own package manager, `dkp-pacman` which can be installed relatively easily, and can be used to configure the development environment to your liking.
+### Step 1: Install CMake
+CMake is a tool that is used to generate build files for a project (e.g. a Makefile, Visual Studio project file, etc.) from a higher-level scripting language. CMake is a core part of the wut build system, and for most software that uses wut, CMake is required to perform the build.
+
+CMake is well supported by package vendors and is easy to install. On a GNU/Linux distribution, you can usually install it using your platform's package manager, e.g. for Debian/Ubuntu/Raspbian/etc. -
+
+```
+$ sudo apt-get update
+$ sudo apt-get install cmake
+```
+
+On macOS, if you have [Homebrew](https://brew.sh/) or [MacPorts](https://macports.org/) installed, you can install it using the respective command line tools. Otherwise, CMake is available as a graphical installer from https://cmake.org/download/ (scroll down to "Binary distributions").
+
+### Step 2: Install the devkitPro package manager
+The devkitPPC compiler toolchain is part of a larger set of software programs called devkitPro, which provides toolchains for development of homebrew for platforms such as the Nintendo 3DS, Switch, GameCube and Wii, as well as others. As such, devkitPro has its own package manager, `dkp-pacman`, which can be installed relatively easily, and can be used to configure the development environment to your liking.
 
 For people using macOS or a Debian-based GNU/Linux distribution (e.g. Ubuntu, Raspbian) `dkp-pacman` can be installed by downloading and running the installer from its [download page](https://github.com/devkitPro/pacman/releases/latest). For other GNU/Linux distributions (especially Arch), you may already have the standard `pacman` installed, or you may be able to install `pacman`, which can be configured to read from the devkitPro repositories, as per the instructions on the [devkitPro wiki](https://devkitpro.org/wiki/devkitPro_pacman).
 
-### Step 2: Install devkitPPC and other tools
+### Step 3: Install devkitPPC and other tools
 Now that `dkp-pacman` is installed (or you've configured `pacman` to search the devkitPro repositories) make sure that the list of packages is up-to-date.
 
 (Note: make sure that you use the correct program for your system - `dkp-pacman` or the standard `pacman`)
 
 ```
-sudo dkp-pacman -Sy
+$ sudo dkp-pacman -Sy
 ```
 
 At any point after the installation, you can upgrade all installed packages to the latest version with:
 
 ```
-sudo dkp-pacman -Syu
+$ sudo dkp-pacman -Syu
 ```
 
-Now, the packages that you want installed to perform Wii U homebrew development include `devkitPPC` (a compiler and binary utilities for generic PowerPC processors), `wiiload` (used to launch a program on your console remotely) and `devkitpro-pkgbuild-helpers` (helpful utilities for linking to software libraries).
+Now, the packages that you want installed to perform Wii U homebrew development include `devkitPPC` (a compiler and binary utilities for the PowerPC processor variants used in the Nintendo GameCube, Wii and Wii U) and `wiiload` (used to remotely launch a program on a console running the Homebrew Launcher).
 
 ```
-sudo dkp-pacman -S devkitPPC wiiload devkitpro-pkgbuild-helpers
+$ sudo dkp-pacman -S devkitPPC wiiload
 ```
 
-### Step 3: Set up Fling (Wii U-specific package repository)
+Once these are installed, you need to export environment variables so that the build system knows where the compiler and support libraries are located. On GNU/Linux, this is provided automatically through the `devkit-env` package, so install it as well.
+
+```
+$ sudo dkp-pacman -S devkit-env
+```
+
+If you are on macOS, you will need to export these variables manually. Open `~/.bash_profile` in your favourite text editor (if it doesn't exist, create it) and add the following lines to it:
+
+```
+export DEVKITPRO=/opt/devkitpro
+export DEVKITPPC=$DEVKITPRO/devkitPPC
+export PATH=$DEVKITPPC/bin:$DEVKITPRO/tools/bin:$PATH
+```
+
+### Step 4: Set up Fling (Wii U-specific package repository)
 In addition to the official devkitPro software packages, we have our own package repository (fling.heyquark.com) which contains many packages specific to Wii U development.
 
-The process of setting up Fling is documented on its [GitLab repository page](https://gitlab.com/QuarkTheAwesome/wiiu-fling).
+The process of setting up Fling is documented on its [GitLab repository page](https://gitlab.com/QuarkTheAwesome/wiiu-fling/blob/master/README.md#wiiu-fling).
 
-### Step 4: Installing wut
+### Step 5: Installing wut
 With Fling installed, installing wut is very easy.
 
 For GNU/Linux and Windows Subsystem for Linux users:
 
 ```
-sudo dkp-pacman -S wut-linux-bin
+$ sudo dkp-pacman -S wut-linux
 ```
 
 And for macOS users:
 
 ```
-sudo dkp-pacman -S wut-osx
+$ sudo dkp-pacman -S wut-osx
 ```
 
-In both cases, this will install wut into `/opt/wut`. The wut build system requires that the environment variable `WUT_ROOT` be set to this directory, so run:
+In both cases, this will install wut into `/opt/wut`. The wut build system requires that the environment variable `WUT_ROOT` be set to this directory - again, this is handled automatically on GNU/Linux systems, but if you're using macOS, add this to your `~/.bash_profile`:
 ```
 export WUT_ROOT=/opt/wut
+export PATH=$WUT_ROOT/bin:$PATH
 ```
 
-This is only temporary, so you may wish to add this to your `.bash_profile` or `.bashrc` or whatever script your shell program runs at the beginning of a session.
+And that's it. As of your next shell session, you should have access to all necessary components of the Wii U build system.
+
+```
+$ powerpc-eabi-gcc -v
+...
+gcc version 8.2.0 (devkitPPC release 33)
+
+$ wiiload
+wiiload v0.5.1
+coded by dhewg
+...
+
+$ elf2rpl
+elf2rpl <options> src dst
+...
+```
 
 ***Chapter 1: That's all folks!***
 Head over to Chapter 2 [here](/tutorial/Chapter%202.md).
