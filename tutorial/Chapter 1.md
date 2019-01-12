@@ -38,8 +38,6 @@ The current recommended development target is RPX homebrew, using wut. You can d
 ## Setting up the build environment
 The environment required to build software for the Wii U (more specifically, using wut) consists of a compiler toolchain (in our case, devkitPPC is the recommended toolchain) as well as the wut programs and libraries. The process of installing this software is relatively well automated and can be performed in a few simple steps.
 
-Please note that while devkitPPC is supported on Windows, wut is not. If you wish to use Windows to perform development activity, you may wish to install Ubuntu or another GNU/Linux distribution from the Microsoft Store app, and perform these instructions within the virtualised Linux subsystem. If you natively use a GNU/Linux distribution or macOS, you should be able to follow these instructions.
-
 ### Step 1: Install CMake
 CMake is a tool that is used to generate build files for a project (e.g. a Makefile, Visual Studio project file, etc.) from a higher-level scripting language. CMake is a core part of the wut build system, and for most software that uses wut, CMake is required to perform the build.
 
@@ -52,10 +50,12 @@ $ sudo apt-get install cmake
 
 On macOS, if you have [Homebrew](https://brew.sh/) or [MacPorts](https://macports.org/) installed, you can install it using the respective command line tools. Otherwise, CMake is available as a graphical installer from https://cmake.org/download/ (scroll down to "Binary distributions").
 
+Windows users will install CMake in Step 3.
+
 ### Step 2: Install the devkitPro package manager
 The devkitPPC compiler toolchain is part of a larger set of software programs called devkitPro, which provides toolchains for development of homebrew for platforms such as the Nintendo 3DS, Switch, GameCube and Wii, as well as others. As such, devkitPro has its own package manager, `dkp-pacman`, which can be installed relatively easily, and can be used to configure the development environment to your liking.
 
-For people using macOS or a Debian-based GNU/Linux distribution (e.g. Ubuntu, Raspbian) `dkp-pacman` can be installed by downloading and running the installer from its [download page](https://github.com/devkitPro/pacman/releases/latest). For other GNU/Linux distributions (especially Arch), you may already have the standard `pacman` installed, or you may be able to install `pacman`, which can be configured to read from the devkitPro repositories, as per the instructions on the [devkitPro wiki](https://devkitpro.org/wiki/devkitPro_pacman).
+For people using macOS or a Debian-based GNU/Linux distribution (e.g. Ubuntu, Raspbian) `dkp-pacman` can be installed by downloading and running the installer from its [download page](https://github.com/devkitPro/pacman/releases/latest). For other GNU/Linux distributions (especially Arch), you may already have the standard `pacman` installed, or you may be able to install `pacman`, which can be configured to read from the devkitPro repositories, as per the instructions on the [devkitPro wiki](https://devkitpro.org/wiki/devkitPro_pacman). For Windows users, a [graphical installer is available](https://github.com/devkitPro/installer/releases/latest). You don't need to select any of the "<console> development" options when installing. From here on out, use "msys2" from your Start Menu to run commands.
 
 ### Step 3: Install devkitPPC and other tools
 Now that `dkp-pacman` is installed (or you've configured `pacman` to search the devkitPro repositories) make sure that the list of packages is up-to-date.
@@ -84,6 +84,12 @@ Once these are installed, you need to export environment variables so that the b
 $ sudo dkp-pacman -S devkit-env
 ```
 
+On Windows, the required variables are already set by msys2, and you don't need to worry about it. However, you do need to install `cmake` to use wut later, so run the following command:
+
+```
+$ pacman -S cmake
+```
+
 If you are on macOS, you will need to export these variables manually. Open `~/.bash_profile` in your favourite text editor (if it doesn't exist, create it) and add the following lines to it:
 
 ```
@@ -104,6 +110,12 @@ For GNU/Linux and Windows Subsystem for Linux users:
 
 ```
 $ sudo dkp-pacman -S wut-linux
+```
+
+For Windows/msys2 users:
+
+```
+$ pacman -S wut-msys2
 ```
 
 And for macOS users:
