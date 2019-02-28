@@ -7,7 +7,7 @@ Alright, let's get into it! We're going to look at a very simple wut application
 
 Open up [resource 3.1](/resources/3-1-HelloWorld) in another tab - that's the code we'll be referencing throughout this chapter. We've only got two files there - `CMakeLists.txt` and `main.c`. `CMakeLists.txt` is part of the wut build system - as you've probably guessed, wut uses cmake to build homebrew, using macros to add a few extensions we'll look at later. `main.c` is the only source file for this app, and it's what we'll look at first in this chapter.
 
-You might also want to reference against [wut's documentation](https://decaf-emu.github.io/wut/), which lists all the Nintendo-provided functions along with descriptions for most of them. I'll link to the specific functions where I can, though be aware the links may go bad as wut updates.
+You might also want to reference against [wut's documentation](https://devkitpro.github.io/wut/), which lists all the Nintendo-provided functions along with descriptions for most of them. I'll link to the specific functions where I can, though be aware the links may go bad as wut updates.
 
 ## `main.c` - line by line
 So, let's open up this source and have a look! Feel free to take this at your own pace - read the source, read this chapter, whatever. I've added some comments to `main.c` if you want to blow through quickly, but for a deeper look I'm going to go over it line by line.
@@ -27,7 +27,7 @@ This is about what you'd expect from a C program. There are a few small consider
 #include <whb/log.h>
 #include <whb/proc.h>
 ```
-Here's our first hint that this is no average C program! [`<coreinit/screen.h>`](https://decaf-emu.github.io/wut/screen_8h.html) is a wut-supplied header that contains all the OSScreen functions we'll be using later to make some graphics. [`<coreinit/cache.h>`](https://decaf-emu.github.io/wut/cache_8h.html) provides functions to manage the processor cache - we'll look at these in detail when we use them. The other three headers are from libwhb, pulling in logging (with both Cafe and UDP backends - more on this later) and `proc.h`, which we'll also come to soon enough.
+Here's our first hint that this is no average C program! [`<coreinit/screen.h>`](https://devkitpro.github.io/wut/screen_8h.html) is a wut-supplied header that contains all the OSScreen functions we'll be using later to make some graphics. [`<coreinit/cache.h>`](https://devkitpro.github.io/wut/cache_8h.html) provides functions to manage the processor cache - we'll look at these in detail when we use them. The other three headers are from libwhb, pulling in logging (with both Cafe and UDP backends - more on this later) and `proc.h`, which we'll also come to soon enough.
 
 ```c
 int main(int argc, char** argv) {
@@ -53,7 +53,7 @@ While it might not be obvious at first glance, Cafe is actually a fully multitas
 ```c
 OSScreenInit();
 ```
-Here we start to init OSScreen; a really simple graphics library that Nintendo made (though we've never seen them use it). Just calling [`OSScreenInit`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#gac678395798fae82a857a824eedebd7de) isn't quite enough, though - most of what we're doing from here on out will be related to OSScreen in some way.
+Here we start to init OSScreen; a really simple graphics library that Nintendo made (though we've never seen them use it). Just calling [`OSScreenInit`](https://devkitpro.github.io/wut/group__coreinit__screen.html#gac678395798fae82a857a824eedebd7de) isn't quite enough, though - most of what we're doing from here on out will be related to OSScreen in some way.
 
 ```c
 size_t tvBufferSize = OSScreenGetBufferSizeEx(SCREEN_TV);
@@ -62,7 +62,7 @@ WHBLogPrintf("Will allocate 0x%X bytes for the TV, " \
              "and 0x%X bytes for the DRC.",
              tvBufferSize, drcBufferSize);
 ```
-OSScreen needs two memory areas to put framebuffers in - here we use [`OSScreenGetBufferSizeEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga14a0a2e005fc00ddd23ac58aff566ee5) to ask how much it needs, both for the TV and DRC (Gamepad). We'll need access to these sizes even after allocation for reasons we'll see later, so I stick them in variables.
+OSScreen needs two memory areas to put framebuffers in - here we use [`OSScreenGetBufferSizeEx`](https://devkitpro.github.io/wut/group__coreinit__screen.html#ga14a0a2e005fc00ddd23ac58aff566ee5) to ask how much it needs, both for the TV and DRC (Gamepad). We'll need access to these sizes even after allocation for reasons we'll see later, so I stick them in variables.
 
 ```c
 void* tvBuffer = memalign(0x100, tvBufferSize);
@@ -78,13 +78,13 @@ I'm going to skip over the nullcheck here - you can go look at it in the code if
 OSScreenSetBufferEx(SCREEN_TV, tvBuffer);
 OSScreenSetBufferEx(SCREEN_DRC, drcBuffer);
 ```
-So, we've allocated the memory OSScreen asked for, so now we just have to tell it where it is! This code should be pretty self-explanatory - we use [`OSScreenSetBufferEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#gae7f7bf93df292c52972baf07b0ba8116) to set the pointers for both the TV and DRC screens. If you check out the linked documentation for that function, you'll note how it stresses the pointers should be 0x100 aligned - this is the reason I went with `memalign` before.
+So, we've allocated the memory OSScreen asked for, so now we just have to tell it where it is! This code should be pretty self-explanatory - we use [`OSScreenSetBufferEx`](https://devkitpro.github.io/wut/group__coreinit__screen.html#gae7f7bf93df292c52972baf07b0ba8116) to set the pointers for both the TV and DRC screens. If you check out the linked documentation for that function, you'll note how it stresses the pointers should be 0x100 aligned - this is the reason I went with `memalign` before.
 
 ```c
 OSScreenEnableEx(SCREEN_TV, true);
 OSScreenEnableEx(SCREEN_DRC, true);
 ```
-With that, we've got OSScreen set up and good to go! We call [`OSScreenEnableEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga0dd2476b23f7f4e52a5167f2335773e3) to have OSScreen actually take control of the displays and get our framebuffer up.
+With that, we've got OSScreen set up and good to go! We call [`OSScreenEnableEx`](https://devkitpro.github.io/wut/group__coreinit__screen.html#ga0dd2476b23f7f4e52a5167f2335773e3) to have OSScreen actually take control of the displays and get our framebuffer up.
 
 With all our initiaisation code out of the way, it's time to get on with our planetary greetings!
 
@@ -97,7 +97,7 @@ I talked before about what libwhb's ProcUI wrapper does - managing foreground/ba
 OSScreenClearBufferEx(SCREEN_TV, 0x00000000);
 OSScreenClearBufferEx(SCREEN_DRC, 0x00000000);
 ```
-So, we're inside our loop - it's time to start rendering! We start with calls to [`OSScreenClearBufferEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#gaa265bdc1d4e801a8e9495ab4f4cabafe) for both the TV and Gamepad - this will wipe both framebuffers clean, filling them with the colour we request. Here, we pass in `0x00000000` - this is RGBX format colour. That means the first two digits are the red value, the next two are green, the third two are blue and the last two are ignored. All the values range from 00 to FF. So, this colour has 00 red, 00 green, and 00 blue... sounds like black! Making both screens black gives us a convenient starting point to render on top of.
+So, we're inside our loop - it's time to start rendering! We start with calls to [`OSScreenClearBufferEx`](https://devkitpro.github.io/wut/group__coreinit__screen.html#gaa265bdc1d4e801a8e9495ab4f4cabafe) for both the TV and Gamepad - this will wipe both framebuffers clean, filling them with the colour we request. Here, we pass in `0x00000000` - this is RGBX format colour. That means the first two digits are the red value, the next two are green, the third two are blue and the last two are ignored. All the values range from 00 to FF. So, this colour has 00 red, 00 green, and 00 blue... sounds like black! Making both screens black gives us a convenient starting point to render on top of.
 
 ```c
 OSScreenPutFontEx(SCREEN_TV, 0, 0, "Hello world! This is the TV.");
@@ -106,7 +106,7 @@ OSScreenPutFontEx(SCREEN_TV, 0, 1, "Neat, right?");
 OSScreenPutFontEx(SCREEN_DRC, 0, 0, "Hello world! This is the DRC.");
 OSScreenPutFontEx(SCREEN_DRC, 0, 1, "Neat, right?");
 ```
-Now we've cleared out our framebuffer, we can render some text into it! This is done with [`OSScreenPutFontEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#gacf5e67a9873092ab755c3af2db421a01) - it takes a screen, a row and column to start the text at; measured in *characters*, not pixels; and finally the string to actually draw. Here we put the text `"Neat, right?"` on the line below the `"Hello World!"` text - that third parameter is the row the text should start on.
+Now we've cleared out our framebuffer, we can render some text into it! This is done with [`OSScreenPutFontEx`](https://devkitpro.github.io/wut/group__coreinit__screen.html#gacf5e67a9873092ab755c3af2db421a01) - it takes a screen, a row and column to start the text at; measured in *characters*, not pixels; and finally the string to actually draw. Here we put the text `"Neat, right?"` on the line below the `"Hello World!"` text - that third parameter is the row the text should start on.
 
 One thing to keep in mind when using OSScreenPutFontEx is that the TV runs at a higher resolution than the Gamepad. OSScreen runs the TV at 720p, with the result being scaled to the actual system resolution later. The Gamepad is always 480p, so you need to be careful - even if your text looks fine on the TV, it might be outside the borders of the Gamepad! There are ways to stretch the TV image so everything matches, but that's outside the scope of this tutorial.
 
@@ -120,7 +120,7 @@ It'd be crazy to try and fully explain everything that's going on here in a few 
 
 If you remember the recap of computer science from Chapter 1, you'll know that all our data and code is stored in memory. The thing is, memory is *slow*. Compared to the CPU, it's outright unbearable. If the CPU interfaced with memory directly, it could easily spend most of its time waiting on the memory to cough up the required data. To solve this problem, modern computers have a **cache** - A small area of memory, usually inside the CPU chip itself. Despite its size - 512KiB on the Wii U (one of the three cores has 2MiB) - this memory is blazingly fast. You can't access it directly though; instead the CPU manages it, keeping a copy of any recently-accessed memory there. If the CPU needs to use that same memory again, it can get the data from the cache instead of the much slower main memory! It can also save some time by writing memory changes to the cache and letting the changes "filter down" to main memory in their own time - this is useful for things like counters that change frequently but don't really need to be in main memory.
 
-This is great and results in a much faster system. There is one problem though - since the CPU can write to the cache without actually updating main memory, all our OSScreen rendering efforts may be caught up in the cache while memory remains outdated. This isn't an issue for our code on the CPU - we'll always read the most recent data - but the GPU is a different story. It knows nothing of the CPU's caches and just wants to read our pixel data from main memory. We can ensure that our writes from the CPU are actually in memory by *flushing* the cache - any changes stuck in the cache are written out and we can rest assured that main memory actually contains the data we wrote. That's why we need to call these functions - we flush any pending writes out of the data cache (**d**ata **c**ache **flush** **range**, or [`DCFlushRange`](https://decaf-emu.github.io/wut/group__coreinit__cache.html#ga3189eaf014ed0ec62c6ecfc5f25d658a)), so we can know that the GPU can read our image correctly and display what we want it to.
+This is great and results in a much faster system. There is one problem though - since the CPU can write to the cache without actually updating main memory, all our OSScreen rendering efforts may be caught up in the cache while memory remains outdated. This isn't an issue for our code on the CPU - we'll always read the most recent data - but the GPU is a different story. It knows nothing of the CPU's caches and just wants to read our pixel data from main memory. We can ensure that our writes from the CPU are actually in memory by *flushing* the cache - any changes stuck in the cache are written out and we can rest assured that main memory actually contains the data we wrote. That's why we need to call these functions - we flush any pending writes out of the data cache (**d**ata **c**ache **flush** **range**, or [`DCFlushRange`](https://devkitpro.github.io/wut/group__coreinit__cache.html#ga3189eaf014ed0ec62c6ecfc5f25d658a)), so we can know that the GPU can read our image correctly and display what we want it to.
 
 With that out of the way...
 
@@ -128,7 +128,7 @@ With that out of the way...
 OSScreenFlipBuffersEx(SCREEN_TV);
 OSScreenFlipBuffersEx(SCREEN_DRC);
 ```
-We've been drawing plenty of text into the OSScreen framebuffers, but if we stopped right here none of it would actually show up on screen. That's because all our text and image data has been drawn into the *work buffer* - a secondary framebuffer that everything gets drawn to. The screen doesn't show the work buffer, instead displaying the *visible buffer*. When we're ready, we can swap these two buffers by calling [`OSScreenFlipBuffersEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga09b9072ab8dd2095f97ba39e24e3b76b) - the work buffer becomes the visible buffer and is shown on-screen, while the old visible buffer becomes our new work buffer. This is known as "flipping" the buffers. This system is used to avoid screen tearing and visual glitches while we draw - things are only shown on-screen once we're ready to show them. It also gives us a chance to sort out the caches! This system of flipping two buffers is widely known as "double buffering".
+We've been drawing plenty of text into the OSScreen framebuffers, but if we stopped right here none of it would actually show up on screen. That's because all our text and image data has been drawn into the *work buffer* - a secondary framebuffer that everything gets drawn to. The screen doesn't show the work buffer, instead displaying the *visible buffer*. When we're ready, we can swap these two buffers by calling [`OSScreenFlipBuffersEx`](https://devkitpro.github.io/wut/group__coreinit__screen.html#ga09b9072ab8dd2095f97ba39e24e3b76b) - the work buffer becomes the visible buffer and is shown on-screen, while the old visible buffer becomes our new work buffer. This is known as "flipping" the buffers. This system is used to avoid screen tearing and visual glitches while we draw - things are only shown on-screen once we're ready to show them. It also gives us a chance to sort out the caches! This system of flipping two buffers is widely known as "double buffering".
 
 ```c
 }
@@ -185,8 +185,8 @@ Here's some ideas for things you might change:
 
  - Change the text that gets drawn onscreen - change some words, maybe write a whole new message? Add a few extra lines of text. How much can you write before going off the side of the screen?
  - Change the background colour. Red or blue is easy - how about yellow? Purple? Try a different colour on the TV and the Gamepad.
- - Remember [`OSSleepTicks`](https://decaf-emu.github.io/wut/group__coreinit__thread.html#gaec240f68873bb19c753cfdd346264c17), from Chapter 2? Try adding a small delay at the end of the while loop - how long can you wait before controls start becoming unresponsive? Don't forget your `#include`s.
- - Play around with some of the other [OSScreen functions](https://decaf-emu.github.io/wut/group__coreinit__screen.html) - how about [`OSScreenPutPixelEx`](https://decaf-emu.github.io/wut/group__coreinit__screen.html#ga3f4b6594fdc62b57e5ceb6cdc0e57d5a)? Try drawing some shapes with that.
+ - Remember [`OSSleepTicks`](https://devkitpro.github.io/wut/group__coreinit__thread.html#gaec240f68873bb19c753cfdd346264c17), from Chapter 2? Try adding a small delay at the end of the while loop - how long can you wait before controls start becoming unresponsive? Don't forget your `#include`s.
+ - Play around with some of the other [OSScreen functions](https://devkitpro.github.io/wut/group__coreinit__screen.html) - how about [`OSScreenPutPixelEx`](https://devkitpro.github.io/wut/group__coreinit__screen.html#ga3f4b6594fdc62b57e5ceb6cdc0e57d5a)? Try drawing some shapes with that.
 
 It may seem somewhat silly, but this is how I learnt and how most of the other Wii U developers I talked to learnt - taking existing code and experimenting on it; changing it to do whatever they want it to do. If you get stuck, feel free to ask for help! We've all been there and will gladly help. Wherever you found out about this tutorial is probably a good place to try.
 
