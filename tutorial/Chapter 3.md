@@ -48,7 +48,7 @@ WHBProcInit();
 ```
 While it might not be obvious at first glance, Cafe is actually a fully multitasking OS, with a concept of the "foreground" and the "background". Sometimes, our app will get moved into the background - this can happen to open the HOME menu overlay, for example; though apps like the Internet Browser or Nintendo eShop do the same thing. Nintendo provides a library called **ProcUI** to handle these transitions along with a few other functions - the auto power-down features, for example. While ProcUI is relatively simple, libwhb provides an even simpler wrapper so we don't really have to think about it at all. Here we initialise that.
 
-*Note: at the time of writing, libwhb's procui wrapper does not allow us to cleanly move from the background into the foreground - so resuming the app from the menu overlay may not work. Also note that when running from HBL, libwhb will exit the app instead of moving to the background.*
+*Note: Even though libwhb handles most ProcUI functionality, our code still has to be somewhat modified to allow moving in and out of the background. For the sake of simplicity, the graphics code we're going to use makes no attempt to do this, so things like the HOME menu overlay are unlikely to work right. Also note that when running from HBL, libwhb will exit the app instead of moving to the background.*
 
 ```c
 OSScreenInit();
