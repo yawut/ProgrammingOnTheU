@@ -51,20 +51,21 @@ Here we make a few variables to hold key data - the [`VPADStatus`](https://wut.d
 
 ```c
 while (WHBProcIsRunning()) {
-    if (VPADRead(VPAD_CHAN_0, &status, 1, &error)) {
+    VPADRead(VPAD_CHAN_0, &status, 1, &error);
 ```
-Here we've got a loop over `WHBProcIsRunning` - pretty standard stuff, Chapter 3 has a refresher. What's really interesting is what's *inside* the loop - a call to [`VPADRead`](https://wut.devkitpro.org/group__vpad__input.html#ga2265b154ad3a6059dc05bda56c8471a6), a function we haven't seen yet! VPAD is Nintendo's library for interacting with the Gamepad, so `VPADRead`, well... reads input data from the Gamepad. Our first parameter is a channel number - some may remember how the Wii U was originally going to have several Gamepads at once, and this is an artifact of that. Since our poor retail consoles can only handle one, it's a safe bet to hard-code this to `VPAD_CHAN_0`. The next parameter is a pointer to a `VPADStatus` struct. It's actually treated as an array, but we're yet to figure out why you'd want more than one buffer - so passing in just one works fine. On that note, parameter 3 is the number of items in the array; one in this case. Last but certainly not least is a pointer to write any error codes to, one of `VPADReadError`. `VPADRead` will fill in all our buffers with data from the Gamepad and return non-zero if something needs our attention - which is why I've put it in an if-check.
+Here we've got a loop over `WHBProcIsRunning` - pretty standard stuff, Chapter 3 has a refresher. What's really interesting is what's *inside* the loop - a call to [`VPADRead`](https://wut.devkitpro.org/group__vpad__input.html#ga2265b154ad3a6059dc05bda56c8471a6), a function we haven't seen yet! VPAD is Nintendo's library for interacting with the Gamepad, so `VPADRead`, well... reads input data from the Gamepad. Our first parameter is a channel number - some may remember how the Wii U was originally going to have several Gamepads at once, and this is an artifact of that. Since our poor retail consoles can only handle one, it's a safe bet to hard-code this to `VPAD_CHAN_0`. The next parameter is a pointer to a `VPADStatus` struct. It's actually treated as an array, but we're yet to figure out why you'd want more than one buffer - so passing in just one works fine. On that note, parameter 3 is the number of items in the array; one in this case. Last but certainly not least is a pointer to write any error codes to, one of `VPADReadError`. `VPADRead` will fill in all our buffers with data from the Gamepad, writing a success or error core to `error`.
 
 So, let's see what happens when something does go wrong:
 ```c
-//TODO
 switch (error) {
+    case VPAD_READ_SUCCESS: {
+        break;
+    }
     case VPAD_READ_NO_SAMPLES: {
-        WHBLogPrint("debug: no samp");
         continue;
     }
     case VPAD_READ_INVALID_CONTROLLER: {
-        WHBLogPrint("debug: no cont");
+        WHBLogPrint("Gamepad disconnected!");
         vpad_fatal = true;
         break;
     }
@@ -74,12 +75,12 @@ switch (error) {
         break;
     }
 }
-// ...
 if (vpad_fatal) break;
 ```
-Remember that this is inside the if-check from before, so we can assume that something has gone wrong. We switch over all the known error codes, and handle each appropriately:
+`VPADRead` doesn't always succeed, so it's important to check if anything went wrong. We switch over all the known error codes, and handle each appropriately:
+ - `VPAD_READ_SUCCESS` means all is well, and we can go on to check our `VPADStatus` buffers.
  - `VPAD_READ_NO_SAMPLES` occurs when the console didn't receive any new data between this call to `VPADRead` and our last one. Keep in mind the Gamepad is connected wirelessly, so there's a polling rate and bandwidth limits under the hood - therefore it's entirely possible to check too fast. As you'd guess, this error code comes up all the time, and is nothing to worry about. Here we just `continue` to do loop around again without any consequence - more data will come through eventually.
- - `VPAD_READ_INVALID_CONTROLLER` TODO idk what this actually means, I assume missing gamepad?
+ - `VPAD_READ_INVALID_CONTROLLER` means there was something wrong with the controller assosciated with the channel we picked - either there's no controller there, or it's off, or the channel number was wrong. Since we're only reading channel 0, the only conclusion we can come to is that the Gamepad is off or disconnected.
 
 Finally, we drop in a `default` case just in case there's error conditions that we don't know about yet. Then we check if there was any fatal errors; before breaking the loop to quit the app if there was - while we don't have to do this, there's not much point for a button tester to keep running if the Gamepad isn't gonna work!
 

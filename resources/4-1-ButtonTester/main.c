@@ -28,33 +28,35 @@ int main(int argc, char** argv) {
 
     while (WHBProcIsRunning()) {
     /*  Read button, touch and sensor data from the Gamepad */
-        if (VPADRead(VPAD_CHAN_0, &status, 1, &error)) {
-        /*  VPADRead didn't return 0 - what went wrong? */
-            switch (error) {
-            /*  No data available from the DRC yet - we're asking too often!
-                This is really common, and nothing to worry about. */
-                case VPAD_READ_NO_SAMPLES: {
-                    WHBLogPrint("debug: no samp");
-                /*  Just keep looping, we'll get data eventually */
-                    continue;
-                }
-            /*  Either our channel was bad, or the controller is. Since this app
-                hard-codes channel 0, we can assume something's up with the
-                controller - maybe it's missing or off? */
-                case VPAD_READ_INVALID_CONTROLLER: {
-                    WHBLogPrint("debug: no cont");
-                /*  Not much point testing buttons for a controller that's not
-                    actually there */
-                    vpad_fatal = true;
-                    break;
-                }
-            /*  If you hit this, good job! As far as we know VPADReadError will
-                always be one of the above. */
-                default: {
-                    WHBLogPrintf("Unknown VPAD error! %08X", error);
-                    vpad_fatal = true;
-                    break;
-                }
+        VPADRead(VPAD_CHAN_0, &status, 1, &error);
+    /*  Check for any errors */
+        switch (error) {
+            case VPAD_READ_SUCCESS: {
+            /*  Everything worked, awesome! */
+                break;
+            }
+        /*  No data available from the DRC yet - we're asking too often!
+            This is really common, and nothing to worry about. */
+            case VPAD_READ_NO_SAMPLES: {
+            /*  Just keep looping, we'll get data eventually */
+                continue;
+            }
+        /*  Either our channel was bad, or the controller is. Since this app
+            hard-codes channel 0, we can assume something's up with the
+            controller - maybe it's missing or off? */
+            case VPAD_READ_INVALID_CONTROLLER: {
+                WHBLogPrint("Gamepad disconnected!");
+            /*  Not much point testing buttons for a controller that's not
+                actually there */
+                vpad_fatal = true;
+                break;
+            }
+        /*  If you hit this, good job! As far as we know VPADReadError will
+            always be one of the above. */
+            default: {
+                WHBLogPrintf("Unknown VPAD error! %08X", error);
+                vpad_fatal = true;
+                break;
             }
         }
     /*  If there was some kind of fatal issue reading the VPAD, break out of
