@@ -1,8 +1,6 @@
 # Wii U Programming
 A quick thrash for existing programmers
 
-*note: this chapter is still in the draft stage. don't read it*
-
 **Chapter 4 - Gamepad Input**
 
 Now you've gotten a feel for how OSScreen can be used to generate graphics, it's time to let libwhb do all that work and focus on the next thing you'll need to make a cool app - Gamepad input! buttons! We're gonna dip our toes into the world of interactivity with a simple button tester application.
