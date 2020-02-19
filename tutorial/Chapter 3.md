@@ -190,4 +190,5 @@ Here's some ideas for things you might change:
 
 It may seem somewhat silly, but this is how I learnt and how most of the other Wii U developers I talked to learnt - taking existing code and experimenting on it; changing it to do whatever they want it to do. If you get stuck, feel free to ask for help! We've all been there and will gladly help. Wherever you found out about this tutorial is probably a good place to try.
 
-***Chapter 3: So long!*** Chapter 4 isn't quite ready yet - please check back later! I'll be sure to mention it on my social accounts; [pick your platform](https://heyquark.com/aboutme/) if you're into that.
+***Chapter 3: So long!***
+In Chapter 4, we'll button-mashing Gamepad action! Take a look [here](/tutorial/Chapter%204.md).
